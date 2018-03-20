@@ -5,13 +5,13 @@ const json = require('koa-json')
 const onerror = require('koa-onerror')
 const bodyparser = require('koa-bodyparser')
 const logger = require('koa-logger')
-
-const index = require('./routes/index')
-const users = require('./routes/users')
-
-// error handler
+const jwt = require('koa-jwt');
+const router = require('koa-router')();
+const api = require('./api/index');
+const config = require('./config/environment')
+//const tokenError 
+const tokenError = require('./service/auth.service');
 onerror(app)
-
 // middlewares
 app.use(bodyparser({
   enableTypes:['json', 'form', 'text']
@@ -32,9 +32,21 @@ app.use(async (ctx, next) => {
   console.log(`${ctx.method} ${ctx.url} - ${ms}ms`)
 })
 
+//get jwt
+app.use(router['routes']());
+router.get('/jwt/:userId?', (ctx,next) => {
+	console.log(333)
+	let userId = ctx.params.userId || 19931015;
+	let tokenInfo = require('./service/auth.service').isSignToken({userId: userId});
+	ctx.body = tokenInfo.jwt
+});
+
 // routes
-app.use(index.routes(), index.allowedMethods())
-app.use(users.routes(), users.allowedMethods())
+router.use('/api',api.routes(),api.allowedMethods());
+
+
+// serve api doc
+
 
 // error-handling
 app.on('error', (err, ctx) => {
